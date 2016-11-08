@@ -23,7 +23,7 @@ class VisionsSpider(scrapy.Spider):
                 menu_item = menu_item.xpath('./a/span/text()').extract_first()
                 self.log('Department: ' + menu_item)
                 yield scrapy.Request(next_page, callback=self.parse_category)
-        # break
+            break
 
     def parse_category(self, response):
         # self.log("here")
@@ -36,23 +36,38 @@ class VisionsSpider(scrapy.Spider):
             if category and next_page is not None:
                 self.log("category: " + category)
                 yield scrapy.Request(next_page, callback=self.parse_sub_category)
-        # break
+            break
 
     def parse_sub_category(self, response):
         # self.log("subCat")
         for sub_category in response.xpath(
                 '//td[@class="leftPanel"]/div/div/ul[@class="subcatemenu-items"]'
                 '/li'):
+            next_page = sub_category.css('a::attr(href)').extract_first()
+            next_page = response.urljoin(next_page)
             sub_category = sub_category.xpath('./div/div[@class="itembox-name"]'
                                             '/a/text()').extract_first()
             if sub_category is not None:
                 self.log("sub_category: " + sub_category)
-        # break
+                yield scrapy.Request(next_page, callback=self.parse_first_item)
+            break
 
     def parse_first_item(self, response):
         """ parses only the first item
             not using Items
             'qty': response.xpath().extract_first()"""
+        title = ''
+        price = ''
+        # price_old = ''
+        for item_box in response.xpath('//div[@class="productresult-itembox"]'):
+            title = item_box.xpath('./div[@class="contentright"]/h2/a//text()').extract_first()
+            #price_old = item_box.xpath('./div[@class="contentright"]//span[@class="price-old"]/text()').extract_first()
+            price = item_box.xpath('./div[@class="contentright"]//span[@class="price"]/text()').extract_first()
+            # using break because extracting only first element. remove to extract all elements
+            break
+        self.log(title)
+        self.log(price)
+        """
         yield {
             'title': response.xpath('//div[@class="productItemMain"]'
                                     '/div[@class="productName"]/a/text()')
@@ -60,4 +75,4 @@ class VisionsSpider(scrapy.Spider):
             'price': response.xpath('//div[@class="productItemMain"]'
                                     '/div[@class="skuPriceAirMiles"]/span[@class="price"]/text()')
                                     .extract_first().strip()
-        }
+        } """

@@ -1,0 +1,7 @@
+# compiled files
+
+scrapy_visions/settings.pyc
+scrapy_visions/__init__.pyc
+
+scrapy_visions/spiders/__init__.pyc
+scrapy_visions/spiders/visions_spider.pyc
